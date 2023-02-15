@@ -35,7 +35,7 @@ class Picture:
         im.save(filename)
 
     def set_pixel(self, x, y, color):
-        self.image_array[int(x)][int(y)] = color
+        self.image_array[int(-y)][int(-x)] = color
 
     def set_color(self, colour_array=None):
         if colour_array is None:
