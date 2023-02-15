@@ -35,7 +35,7 @@ class Picture:
         im.save(filename)
 
     def set_pixel(self, x, y, color):
-        self.image_array[int(-y)][int(-x)] = color
+        self.image_array[int(y)][int(x)] = color
 
     def set_color(self, colour_array=None):
         if colour_array is None:
@@ -138,13 +138,13 @@ class RenderPicture:
     def draw_vertex(self, height, weight, k, b):
         picture = Picture(height, weight)
         for v in self.vertex:
-            picture.set_pixel(k * v[0] + b, k * v[1] + b, color=255)
+            picture.set_pixel(k * v[0] + b, -k * v[1] + b, color=255)
         self.vertex_picture = picture
 
     def draw_polygon(self, height, weight, k=4000, b=500):
         picture = Picture(height, weight)
         for p in self.polygon:
             for i in range(-1, 2):
-                picture.line_4(self.vertex[p[i]][0] * k + b, self.vertex[p[i]][1] * k + b,
-                               self.vertex[p[i+1]][0] * k + b, self.vertex[p[i+1]][1] * k + b, color=255)
+                picture.line_4(self.vertex[p[i]][0] * k + b, -self.vertex[p[i]][1] * k + b,
+                               self.vertex[p[i+1]][0] * k + b, -self.vertex[p[i+1]][1] * k + b, color=255)
         self.poly_picture = picture
