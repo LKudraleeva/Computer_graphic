@@ -1,3 +1,5 @@
+import random
+
 from PIL import Image
 import numpy as np
 
@@ -149,9 +151,11 @@ class RenderPicture:
                                self.vertex[p[i + 1]][0] * k + b, -self.vertex[p[i + 1]][1] * k + b, color=255)
         self.poly_picture = picture
 
-    def draw_triangle(self, height, weight, k=4000, b=500):
-        picture = Picture(height, weight)
+    def draw_triangle(self, height, weight, color: bool = False, k=4000, b=500):
+        picture = Picture(height, weight, color)
+
         for p in self.polygon:
+            triangle_color = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
 
             x0 = k * self.vertex[p[0]][0] + b
             y0 = -k * self.vertex[p[0]][1] + b
@@ -181,7 +185,10 @@ class RenderPicture:
                     if np.sum(lambdas) == 1:
                         if np.all(lambdas >= 0):
                             if picture.h > x >= 0 and picture.w > y >= 0:
-                                picture.set_pixel(x, y, 255)
+                                if not color:
+                                    picture.set_pixel(x, y, 255)
+                                else:
+                                    picture.set_pixel(x, y, triangle_color)
 
             self.vertex_picture = picture
 
