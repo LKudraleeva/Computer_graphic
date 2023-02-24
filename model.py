@@ -146,5 +146,49 @@ class RenderPicture:
         for p in self.polygon:
             for i in range(-1, 2):
                 picture.line_4(self.vertex[p[i]][0] * k + b, -self.vertex[p[i]][1] * k + b,
-                               self.vertex[p[i+1]][0] * k + b, -self.vertex[p[i+1]][1] * k + b, color=255)
+                               self.vertex[p[i + 1]][0] * k + b, -self.vertex[p[i + 1]][1] * k + b, color=255)
         self.poly_picture = picture
+
+    def draw_triangle(self, height, weight, k=4000, b=500):
+        picture = Picture(height, weight)
+        for p in self.polygon:
+
+            x0 = k * self.vertex[p[0]][0] + b
+            y0 = -k * self.vertex[p[0]][1] + b
+            x1 = k * self.vertex[p[1]][0] + b
+            y1 = -k * self.vertex[p[1]][1] + b
+            x2 = k * self.vertex[p[2]][0] + b
+            y2 = -k * self.vertex[p[2]][1] + b
+
+            x_min = min(x0, x1, x2)
+            if x_min < 0:
+                x_min = 0
+            y_min = min(y0, y1, y2)
+            if y_min < 0:
+                y_min = 0
+            x_max = max(x0, x1, x2)
+            if x_max < 0:
+                x_max = 0
+            y_max = max(y0, y1, y2)
+            if y_max < 0:
+                y_max = 0
+
+            for x in range(int(x_min), int(x_max) + 1):
+                for y in range(int(y_min), int(y_max) + 1):
+
+                    lambdas = get_barycentric_coordinates(x, y, x0, y0, x1, y1, x2, y2)
+
+                    if np.sum(lambdas) == 1:
+                        if np.all(lambdas >= 0):
+                            if picture.h > x >= 0 and picture.w > y >= 0:
+                                picture.set_pixel(x, y, 255)
+
+            self.vertex_picture = picture
+
+
+def get_barycentric_coordinates(x: int, y: int, x0: float, y0: float, x1: float, y1: float, x2: float,
+                                y2: float):
+    lambda0 = ((x1 - x2) * (y - y2) - (y1 - y2) * (x - x2)) / ((x1 - x2) * (y0 - y2) - (y1 - y2) * (x0 - x2))
+    lambda1 = ((x2 - x0) * (y - y0) - (y2 - y0) * (x - x0)) / ((x2 - x0) * (y1 - y0) - (y2 - y0) * (x1 - x0))
+    lambda2 = ((x0 - x1) * (y - y1) - (y0 - y1) * (x - x1)) / ((x0 - x1) * (y2 - y1) - (y0 - y1) * (x2 - x1))
+    return np.array([lambda0, lambda1, lambda2])
