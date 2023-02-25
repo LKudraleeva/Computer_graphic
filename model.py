@@ -15,12 +15,26 @@ def correct_points(x0: int, y0: int, x1: int, y1: int, steep=False):
     return x0, x1, y0, y1, steep
 
 
+def get_barycentric_coordinates(x: int, y: int, x0: float, y0: float, x1: float, y1: float, x2: float,
+                                y2: float):
+    lambda0 = ((x1 - x2) * (y - y2) - (y1 - y2) * (x - x2)) / ((x1 - x2) * (y0 - y2) - (y1 - y2) * (x0 - x2))
+    lambda1 = ((x2 - x0) * (y - y0) - (y2 - y0) * (x - x0)) / ((x2 - x0) * (y1 - y0) - (y2 - y0) * (x1 - x0))
+    lambda2 = ((x0 - x1) * (y - y1) - (y0 - y1) * (x - x1)) / ((x0 - x1) * (y2 - y1) - (y0 - y1) * (x2 - x1))
+    return np.array([lambda0, lambda1, lambda2])
+
+
+def cos_angle(normal, vect_l):
+    return np.dot(normal, vect_l) / (np.linalg.norm(normal) * np.linalg.norm(vect_l))
+
+
 class Picture:
 
     def __init__(self, h: int = 256, w: int = 256, color: bool = False):
         self.h = h
         self.w = w
         self.color = color
+        self.z_buffer = np.zeros((h, w))
+
         if color:
             self.image_array = np.zeros((h, w, 3), dtype='uint8')
         else:
@@ -130,7 +144,7 @@ class RenderPicture:
             except:
                 continue
             if v == 'v':
-                vertex.append([float(x), float(y)])
+                vertex.append([float(x), float(y), float(z)])
             if v == 'f':
                 polygon.append([int(x.split("/")[0]) - 1, int(y.split("/")[0]) - 1, int(z.split("/")[0]) - 1])
         f.close()
@@ -154,8 +168,12 @@ class RenderPicture:
     def draw_triangle(self, height, weight, color: bool = False, k=4000, b=500):
         picture = Picture(height, weight, color)
 
+        vect_l = [0, 0, 1]
+
         for p in self.polygon:
-            triangle_color = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
+            # for tasks 10, 11
+            triangle_color_rgb = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
+            triangle_color_gray = random.randint(0, 255)
 
             x0 = k * self.vertex[p[0]][0] + b
             y0 = -k * self.vertex[p[0]][1] + b
@@ -163,6 +181,14 @@ class RenderPicture:
             y1 = -k * self.vertex[p[1]][1] + b
             x2 = k * self.vertex[p[2]][0] + b
             y2 = -k * self.vertex[p[2]][1] + b
+
+            z0 = k * self.vertex[p[0]][2] + b
+            z1 = k * self.vertex[p[1]][2] + b
+            z2 = k * self.vertex[p[2]][2] + b
+
+            normal = [(y1 - y0) * (z1 - z2) - (y1 - y2) * (z1 - z0),
+                      (z1 - z0) * (x1 - x2) - (x1 - x0) * (z1 - z2),
+                      (x1 - x0) * (y1 - y2) - (x1 - x2) * (y1 - y0)]
 
             x_min = min(x0, x1, x2)
             if x_min < 0:
@@ -177,25 +203,28 @@ class RenderPicture:
             if y_max < 0:
                 y_max = 0
 
-            for x in range(int(x_min), int(x_max) + 1):
-                for y in range(int(y_min), int(y_max) + 1):
+            cos_ang = cos_angle(normal, vect_l)
 
-                    lambdas = get_barycentric_coordinates(x, y, x0, y0, x1, y1, x2, y2)
+            if cos_ang < 0:
+                for x in range(int(x_min), int(x_max) + 1):
+                    for y in range(int(y_min), int(y_max) + 1):
 
-                    if np.sum(lambdas) == 1:
-                        if np.all(lambdas >= 0):
-                            if picture.h > x >= 0 and picture.w > y >= 0:
-                                if not color:
-                                    picture.set_pixel(x, y, 255)
-                                else:
-                                    picture.set_pixel(x, y, triangle_color)
+                        lambdas = get_barycentric_coordinates(x, y, x0, y0, x1, y1, x2, y2)
+                        summ = np.sum(lambdas)
+                        if summ == 1:
+                            if np.all(lambdas >= 0):
 
-            self.vertex_picture = picture
+                                # z-buffer
+                                new_z = lambdas[0] * z0 + lambdas[1] * z1 + lambdas[2] * z2
+
+                                if picture.h > x >= 0 and picture.w > y >= 0:
+                                    if new_z > picture.z_buffer[x][y]:
+                                        picture.z_buffer[x][y] = new_z
+                                        if not color:
+                                            picture.set_pixel(x, y, triangle_color_gray)
+                                        else:
+                                            picture.set_pixel(x, y, [255*cos_ang, 0, 0])
+
+                self.vertex_picture = picture
 
 
-def get_barycentric_coordinates(x: int, y: int, x0: float, y0: float, x1: float, y1: float, x2: float,
-                                y2: float):
-    lambda0 = ((x1 - x2) * (y - y2) - (y1 - y2) * (x - x2)) / ((x1 - x2) * (y0 - y2) - (y1 - y2) * (x0 - x2))
-    lambda1 = ((x2 - x0) * (y - y0) - (y2 - y0) * (x - x0)) / ((x2 - x0) * (y1 - y0) - (y2 - y0) * (x1 - x0))
-    lambda2 = ((x0 - x1) * (y - y1) - (y0 - y1) * (x - x1)) / ((x0 - x1) * (y2 - y1) - (y0 - y1) * (x2 - x1))
-    return np.array([lambda0, lambda1, lambda2])
