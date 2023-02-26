@@ -23,7 +23,7 @@ def get_barycentric_coordinates(x: int, y: int, x0: float, y0: float, x1: float,
     return np.array([lambda0, lambda1, lambda2])
 
 
-def cos_angle(normal, vect_l):
+def normalized_dot(normal, vect_l):
     return np.dot(normal, vect_l) / (np.linalg.norm(normal) * np.linalg.norm(vect_l))
 
 
@@ -203,9 +203,9 @@ class RenderPicture:
             if y_max < 0:
                 y_max = 0
 
-            cos_ang = cos_angle(normal, vect_l)
+            norm_dot = normalized_dot(normal, vect_l)
 
-            if cos_ang < 0:
+            if norm_dot < 0:
                 for x in range(int(x_min), int(x_max) + 1):
                     for y in range(int(y_min), int(y_max) + 1):
 
@@ -223,7 +223,7 @@ class RenderPicture:
                                         if not color:
                                             picture.set_pixel(x, y, triangle_color_gray)
                                         else:
-                                            picture.set_pixel(x, y, [255*cos_ang, 0, 0])
+                                            picture.set_pixel(x, y, [255*norm_dot, 0, 0])
 
                 self.vertex_picture = picture
 
