@@ -49,15 +49,59 @@ def task_3_6():
     k_values = [50, 100, 500, 4000]
     b = 500
 
-    im = RenderPicture(file_name)
+    im = RenderPicture()
+    im.read_obj(file_name)
     # 4
     for i, k in enumerate(k_values):
-        im.draw_vertex(height, weight, k, b).save('result/task 4.' + str(i+1) + '.jpg')
+        im.draw_vertex(height, weight, k, b)
+        im.vertex_picture.save('result/task 4.' + str(i + 1) + '.jpg')
     # 6
-    im.draw_polygon(height, weight).save('result/task 6.jpg')
+    im.draw_polygon(height, weight)
+    im.poly_picture.save('result/task 6.jpg')
+
+
+def task_9_11():
+    file_name = 'model_1.obj'
+    height, weight = 1000, 1000
+
+    im = RenderPicture()
+    im.read_obj(file_name)
+
+    # 10
+    # im.draw_triangle(height, weight)
+    # im.vertex_picture.save('result/task 10.jpg')
+
+    # 11
+    # im.draw_triangle(height, weight, True)
+    # im.vertex_picture.save('result/task 11.jpg')
+
+
+def task_12_14():
+    file_name = 'model_1.obj'
+    height, weight = 1000, 1000
+
+    im = RenderPicture()
+    im.read_obj(file_name)
+
+    im.draw_triangle(height, weight, True)
+    im.vertex_picture.save('result/task 14.jpg')
+
+
+def task_15():
+    file_name = 'model_1.obj'
+    height, weight = 1000, 1000
+
+    im = RenderPicture()
+    im.read_obj(file_name)
+
+    im.draw_triangle(height, weight, True)
+    im.vertex_picture.save('result/task 15.jpg')
 
 
 if __name__ == '__main__':
-    task_1()
-    task_2()
-    task_3_6()
+    # task_1()
+    # task_2()
+    # task_3_6()
+    # task_9_11()
+    # task_12_14()
+    task_15()
