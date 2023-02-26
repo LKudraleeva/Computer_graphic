@@ -27,6 +27,23 @@ def normalized_dot(normal, vect_l):
     return np.dot(normal, vect_l) / (np.linalg.norm(normal) * np.linalg.norm(vect_l))
 
 
+def search_minmax(x0, x1, x2, y0, y1, y2):
+    x_min = min(x0, x1, x2)
+    if x_min < 0:
+        x_min = 0
+    y_min = min(y0, y1, y2)
+    if y_min < 0:
+        y_min = 0
+    x_max = max(x0, x1, x2)
+    if x_max < 0:
+        x_max = 0
+    y_max = max(y0, y1, y2)
+    if y_max < 0:
+        y_max = 0
+
+    return x_min, y_min, x_max, y_max
+
+
 class Picture:
 
     def __init__(self, h: int = 256, w: int = 256, color: bool = False):
@@ -190,18 +207,7 @@ class RenderPicture:
                       (z1 - z0) * (x1 - x2) - (x1 - x0) * (z1 - z2),
                       (x1 - x0) * (y1 - y2) - (x1 - x2) * (y1 - y0)]
 
-            x_min = min(x0, x1, x2)
-            if x_min < 0:
-                x_min = 0
-            y_min = min(y0, y1, y2)
-            if y_min < 0:
-                y_min = 0
-            x_max = max(x0, x1, x2)
-            if x_max < 0:
-                x_max = 0
-            y_max = max(y0, y1, y2)
-            if y_max < 0:
-                y_max = 0
+            x_min, y_min, x_max, y_max = search_minmax(x0, x1, x2, y0, y1, y2)
 
             norm_dot = normalized_dot(normal, vect_l)
 
@@ -223,8 +229,6 @@ class RenderPicture:
                                         if not color:
                                             picture.set_pixel(x, y, triangle_color_gray)
                                         else:
-                                            picture.set_pixel(x, y, [255*norm_dot, 0, 0])
+                                            picture.set_pixel(x, y, [255 * norm_dot, 0, 0])
 
                 self.vertex_picture = picture
-
-
