@@ -79,7 +79,7 @@ class Picture:
                 self.set_pixel(y, x, color)
             x += 1
 
-    def line_4(self, x0: int, y0: int, x1: int, y1: int, color):
+    def line_4(self, x0, y0, x1, y1, color):
         steep = False
         x0, x1, y0, y1, steep = correct_points(x0, y0, x1, y1, steep)
 
@@ -110,14 +110,12 @@ class Picture:
 
 
 class RenderPicture:
+    def __init__(self, filename):
+        self.vertex = self.read_obj(filename)[0]
+        self.polygon = self.read_obj(filename)[1]
 
-    def __init__(self):
-        self.vertex = None
-        self.polygon = None
-        self.vertex_picture = None
-        self.poly_picture = None
-
-    def read_obj(self, filename):
+    @staticmethod
+    def read_obj(filename):
         vertex = []
         polygon = []
         f = open(filename, 'r')
@@ -132,14 +130,13 @@ class RenderPicture:
             if v == 'f':
                 polygon.append([int(x.split("/")[0]) - 1, int(y.split("/")[0]) - 1, int(z.split("/")[0]) - 1])
         f.close()
-        self.vertex = vertex
-        self.polygon = polygon
+        return vertex, polygon
 
     def draw_vertex(self, height, weight, k, b):
         picture = Picture(height, weight)
         for v in self.vertex:
             picture.set_pixel(k * v[0] + b, -k * v[1] + b, color=255)
-        self.vertex_picture = picture
+        return picture
 
     def draw_polygon(self, height, weight, k=4000, b=500):
         picture = Picture(height, weight)
@@ -147,4 +144,4 @@ class RenderPicture:
             for i in range(-1, 2):
                 picture.line_4(self.vertex[p[i]][0] * k + b, -self.vertex[p[i]][1] * k + b,
                                self.vertex[p[i+1]][0] * k + b, -self.vertex[p[i+1]][1] * k + b, color=255)
-        self.poly_picture = picture
+        return picture
