@@ -64,12 +64,12 @@ def task_9_11():
     im = RenderPicture(file_name)
 
     # 10
-    # im.draw_triangle(height, weight)
-    # im.vertex_picture.save('result/task 10.jpg')
+    im.draw_triangle(height, weight)
+    im.vertex_picture.save('result/task 10.jpg')
 
     # 11
-    # im.draw_triangle(height, weight, True)
-    # im.vertex_picture.save('result/task 11.jpg')
+    im.draw_triangle(height, weight, True)
+    im.vertex_picture.save('result/task 11.jpg')
 
 
 def task_12_14():
@@ -90,10 +90,19 @@ def task_15():
     im.draw_triangle(height, weight, True).save('result/task 15.jpg')
 
 
+def task_16_17():
+    file_name = 'model_1.obj'
+    height, weight = 1000, 1000
+
+    im = RenderPicture(file_name)
+    im.draw_triangle(height, weight, True).save('result/task 17.jpg')
+
+
 if __name__ == '__main__':
     # task_1()
     # task_2()
     # task_3_6()
     # task_9_11()
     # task_12_14()
-    task_15()
+    # task_15()
+    task_16_17()

@@ -57,3 +57,35 @@ def search_minmax(x0, x1, x2, y0, y1, y2):
         y_max = 0
 
     return x_min, y_min, x_max, y_max
+
+
+def projective_transformation(vertex):
+    matrix_k = np.array([[5000, 0, 500],
+                         [0, 5000, 500],
+                         [0, 0, 1]])
+    t = np.array([0.050, -0.045, 0.5])
+    s = vertex + t
+    new_vertex = np.dot(matrix_k, vertex + t)
+
+    return new_vertex[0], new_vertex[1], new_vertex[2]
+
+
+def rotation_matrix():
+    alpha = 0 / 180 * np.pi
+    betta = 0 / 180 * np.pi
+    gamma = -28.5 / 180 * np.pi
+
+    r_1 = np.array([[1, 0, 0],
+                    [0, np.cos(alpha), np.sin(alpha)],
+                    [0, -1 * np.sin(alpha), np.cos(alpha)]])
+
+    r_2 = np.array([[np.cos(betta), 0, np.sin(betta)],
+                    [0, 1, 0],
+                    [-1 * np.sin(betta), 0, np.cos(betta)]])
+
+    r_3 = np.array([[np.cos(gamma), np.sin(gamma), 0],
+                    [-1 * np.sin(gamma), np.cos(gamma), 0],
+                    [0, 0, 1]])
+    matrix_r = np.dot(np.dot(r_1, r_2), r_3)
+
+    return matrix_r

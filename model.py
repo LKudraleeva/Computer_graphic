@@ -128,20 +128,10 @@ class RenderPicture:
         vect_l = [0, 0, 1]
 
         for p in self.polygon:
-            # for tasks 10, 11
-            triangle_color_rgb = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
-            triangle_color_gray = random.randint(0, 255)
-
-            x0 = k * self.vertex[p[0]][0] + b
-            y0 = -k * self.vertex[p[0]][1] + b
-            x1 = k * self.vertex[p[1]][0] + b
-            y1 = -k * self.vertex[p[1]][1] + b
-            x2 = k * self.vertex[p[2]][0] + b
-            y2 = -k * self.vertex[p[2]][1] + b
-
-            z0 = k * self.vertex[p[0]][2] + b
-            z1 = k * self.vertex[p[1]][2] + b
-            z2 = k * self.vertex[p[2]][2] + b
+            matrix_r = rotation_matrix()
+            x0, y0, z0 = np.dot(matrix_r, projective_transformation(self.vertex[p[0]]))
+            x1, y1, z1 = np.dot(matrix_r, projective_transformation(self.vertex[p[1]]))
+            x2, y2, z2 = np.dot(matrix_r, projective_transformation(self.vertex[p[2]]))
 
             normal = [(y1 - y0) * (z1 - z2) - (y1 - y2) * (z1 - z0),
                       (z1 - z0) * (x1 - x2) - (x1 - x0) * (z1 - z2),
@@ -166,9 +156,6 @@ class RenderPicture:
                                 if picture.h > x >= 0 and picture.w > y >= 0:
                                     if new_z > picture.z_buffer[x][y]:
                                         picture.z_buffer[x][y] = new_z
-                                        if not color:
-                                            picture.set_pixel(x, y, triangle_color_gray)
-                                        else:
-                                            picture.set_pixel(x, y, [255 * norm_dot, 0, 0])
+                                        picture.set_pixel(x, y, [255 * norm_dot, 0, 0])
 
         return picture
