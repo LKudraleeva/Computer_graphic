@@ -1,5 +1,3 @@
-import random
-
 from PIL import Image
 from functions import *
 
@@ -107,6 +105,7 @@ class RenderPicture:
     def __init__(self, filename):
         self.vertex = read_obj(filename)[0]
         self.polygon = read_obj(filename)[1]
+        self.normal = read_obj(filename)[2]
 
     def draw_vertex(self, height, weight, k, b):
         picture = Picture(height, weight)
@@ -128,6 +127,8 @@ class RenderPicture:
         vect_l = [0, 0, 1]
 
         for p in self.polygon:
+
+            # проективное преобразование и поворот модели
             matrix_r = rotation_matrix()
             x0, y0, z0 = np.dot(matrix_r, projective_transformation(self.vertex[p[0]]))
             x1, y1, z1 = np.dot(matrix_r, projective_transformation(self.vertex[p[1]]))
@@ -136,6 +137,18 @@ class RenderPicture:
             normal = [(y1 - y0) * (z1 - z2) - (y1 - y2) * (z1 - z0),
                       (z1 - z0) * (x1 - x2) - (x1 - x0) * (z1 - z2),
                       (x1 - x0) * (y1 - y2) - (x1 - x2) * (y1 - y0)]
+
+            # без try возникает ошибка "list index out of range"
+            try:
+                n_0 = self.normal[p[0]]
+                n_1 = self.normal[p[1]]
+                n_2 = self.normal[p[2]]
+            except:
+                continue
+
+            l0 = normalized_dot(n_0, vect_l)
+            l1 = normalized_dot(n_1, vect_l)
+            l2 = normalized_dot(n_2, vect_l)
 
             x_min, y_min, x_max, y_max = search_minmax(x0, x1, x2, y0, y1, y2)
 
@@ -156,6 +169,7 @@ class RenderPicture:
                                 if picture.h > x >= 0 and picture.w > y >= 0:
                                     if new_z > picture.z_buffer[x][y]:
                                         picture.z_buffer[x][y] = new_z
-                                        picture.set_pixel(x, y, [255 * norm_dot, 0, 0])
+                                        picture.set_pixel(x, y, [255 * (lambdas[0] * l0 + lambdas[1] * l1 + lambdas[2] *
+                                                                        l2), 0, 0])
 
         return picture

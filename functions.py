@@ -4,6 +4,7 @@ import numpy as np
 def read_obj(filename):
     vertex = []
     polygon = []
+    normal = []
     f = open(filename, 'r')
     lines = f.read()
     for line in lines.split('\n'):
@@ -15,8 +16,10 @@ def read_obj(filename):
             vertex.append([float(x), float(y), float(z)])
         if v == 'f':
             polygon.append([int(x.split("/")[0]) - 1, int(y.split("/")[0]) - 1, int(z.split("/")[0]) - 1])
+        if v == 'vn':
+            normal.append([float(x), float(y), float(z)])
     f.close()
-    return vertex, polygon
+    return vertex, polygon, normal
 
 
 def correct_points(x0: int, y0: int, x1: int, y1: int, steep=False):
@@ -60,11 +63,10 @@ def search_minmax(x0, x1, x2, y0, y1, y2):
 
 
 def projective_transformation(vertex):
-    matrix_k = np.array([[5000, 0, 500],
-                         [0, 5000, 500],
+    matrix_k = np.array([[-4000, 0, 500],
+                         [0, -4000, 500],
                          [0, 0, 1]])
-    t = np.array([0.050, -0.045, 0.5])
-    s = vertex + t
+    t = np.array([0, 0, 0.9])
     new_vertex = np.dot(matrix_k, vertex + t)
 
     return new_vertex[0], new_vertex[1], new_vertex[2]
@@ -73,7 +75,7 @@ def projective_transformation(vertex):
 def rotation_matrix():
     alpha = 0 / 180 * np.pi
     betta = 0 / 180 * np.pi
-    gamma = -28.5 / 180 * np.pi
+    gamma = 0 / 180 * np.pi
 
     r_1 = np.array([[1, 0, 0],
                     [0, np.cos(alpha), np.sin(alpha)],
