@@ -1,5 +1,8 @@
 from model import Picture, RenderPicture
 
+file_name = 'model_1.obj'
+height, weight = 1000, 1000
+
 
 def task_1():
     # черное изображение
@@ -44,8 +47,6 @@ def task_2():
 
 
 def task_3_6():
-    file_name = 'model_1.obj'
-    height, weight = 1000, 1000
     k_values = [50, 100, 500, 4000]
     b = 500
 
@@ -57,52 +58,10 @@ def task_3_6():
     im.draw_polygon(height, weight).save('result/task 6.jpg')
 
 
-def task_9_11():
-    file_name = 'model_1.obj'
-    height, weight = 1000, 1000
-
+def task_18():
     im = RenderPicture(file_name)
-
-    # 10
-    im.draw_triangle(height, weight)
-    im.vertex_picture.save('result/task 10.jpg')
-
-    # 11
-    im.draw_triangle(height, weight, True)
-    im.vertex_picture.save('result/task 11.jpg')
-
-
-def task_12_14():
-    file_name = 'model_1.obj'
-    height, weight = 1000, 1000
-
-    im = RenderPicture(file_name)
-
-    im.draw_triangle(height, weight, True).save('result/task 14.jpg')
-
-
-def task_15():
-    file_name = 'model_1.obj'
-    height, weight = 1000, 1000
-
-    im = RenderPicture(file_name)
-
-    im.draw_triangle(height, weight, True).save('result/task 15.jpg')
-
-
-def task_16_18():
-    file_name = 'model_1.obj'
-    height, weight = 1000, 1000
-
-    im = RenderPicture(file_name)
-    im.draw_triangle(height, weight, True).save('result/task 18.jpg')
+    im.draw_guro(height, weight, True).save('result/task 18.jpg')
 
 
 if __name__ == '__main__':
-    # task_1()
-    # task_2()
-    # task_3_6()
-    # task_9_11()
-    # task_12_14()
-    # task_15()
-    task_16_18()
+    task_18()

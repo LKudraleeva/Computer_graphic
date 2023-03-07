@@ -4,6 +4,7 @@ import numpy as np
 def read_obj(filename):
     vertex = []
     polygon = []
+    normal_to_polygon = []
     normal = []
     f = open(filename, 'r')
     lines = f.read()
@@ -16,10 +17,11 @@ def read_obj(filename):
             vertex.append([float(x), float(y), float(z)])
         if v == 'f':
             polygon.append([int(x.split("/")[0]) - 1, int(y.split("/")[0]) - 1, int(z.split("/")[0]) - 1])
+            normal_to_polygon.append([int(x.split("/")[2]) - 1, int(y.split("/")[2]) - 1, int(z.split("/")[2]) - 1])
         if v == 'vn':
             normal.append([float(x), float(y), float(z)])
     f.close()
-    return vertex, polygon, normal
+    return vertex, polygon, normal, normal_to_polygon
 
 
 def correct_points(x0: int, y0: int, x1: int, y1: int, steep=False):
@@ -62,21 +64,27 @@ def search_minmax(x0, x1, x2, y0, y1, y2):
     return x_min, y_min, x_max, y_max
 
 
-def projective_transformation(vertex):
+def projective_transformation(vertexes, rot=None):
+    if rot is None:
+        rot = [0, 0, 0]
+
+    matrix = rotation_matrix(rot[0], rot[1], rot[2])
+
     matrix_k = np.array([[-4000, 0, 500],
                          [0, -4000, 500],
                          [0, 0, 1]])
     t = np.array([0, 0, 0.9])
-    new_vertex = np.dot(matrix_k, vertex + t)
 
-    return new_vertex[0], new_vertex[1], new_vertex[2]
+    new_vertexes = []
+    for v in vertexes:
+        if rot:
+            new_vertexes.append(np.dot(matrix, np.dot(matrix_k, v + t)))
+        else:
+            new_vertexes.append(np.dot(matrix_k, v + t))
+    return new_vertexes
 
 
-def rotation_matrix():
-    alpha = 0 / 180 * np.pi
-    betta = 0 / 180 * np.pi
-    gamma = 0 / 180 * np.pi
-
+def rotation_matrix(alpha, betta, gamma):
     r_1 = np.array([[1, 0, 0],
                     [0, np.cos(alpha), np.sin(alpha)],
                     [0, -1 * np.sin(alpha), np.cos(alpha)]])
@@ -91,3 +99,31 @@ def rotation_matrix():
     matrix_r = np.dot(np.dot(r_1, r_2), r_3)
 
     return matrix_r
+
+
+def get_normal(x0, y0, z0, x1, y1, z1, x2, y2, z2):
+    return [(y1 - y0) * (z1 - z2) - (y1 - y2) * (z1 - z0),
+            (z1 - z0) * (x1 - x2) - (x1 - x0) * (z1 - z2),
+            (x1 - x0) * (y1 - y2) - (x1 - x2) * (y1 - y0)]
+
+
+def draw_with_z_buffer(vertex_list, picture, l_norm):
+    x0, y0, z0 = vertex_list[0]
+    x1, y1, z1 = vertex_list[1]
+    x2, y2, z2 = vertex_list[2]
+
+    x_min, y_min, x_max, y_max = search_minmax(x0, x1, x2, y0, y1, y2)
+
+    norm_dot = normalized_dot(get_normal(x0, y0, z0, x1, y1, z1, x2, y2, z2), [0, 0, 1])
+
+    if norm_dot < 0:
+
+        for x, y in [(x, y) for x in range(int(x_min), int(x_max) + 1) for y in range(int(y_min), int(y_max) + 1)]:
+            lambdas = get_barycentric_coordinates(x, y, x0, y0, x1, y1, x2, y2)
+
+            if np.sum(lambdas) == 1 and np.all(lambdas >= 0):
+                new_z = lambdas[0] * z0 + lambdas[1] * z1 + lambdas[2] * z2
+                if new_z > picture.z_buffer[x][y]:
+                    picture.z_buffer[x][y] = new_z
+                    picture.set_pixel(x, y, [255 * (lambdas[0] * l_norm[0] + lambdas[1] * l_norm[1] + lambdas[2] *
+                                                    l_norm[2]), 0, 0])

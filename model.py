@@ -106,6 +106,7 @@ class RenderPicture:
         self.vertex = read_obj(filename)[0]
         self.polygon = read_obj(filename)[1]
         self.normal = read_obj(filename)[2]
+        self.normal_to_polygon = read_obj(filename)[3]
 
     def draw_vertex(self, height, weight, k, b):
         picture = Picture(height, weight)
@@ -121,55 +122,19 @@ class RenderPicture:
                                self.vertex[p[i + 1]][0] * k + b, -self.vertex[p[i + 1]][1] * k + b, color=255)
         return picture
 
-    def draw_triangle(self, height, weight, color: bool = False, k=4000, b=500):
+    def draw_guro(self, height, weight, color: bool = False):
         picture = Picture(height, weight, color)
 
-        vect_l = [0, 0, 1]
+        for p, n in zip(self.polygon, self.normal_to_polygon):
+            new_vertexes = projective_transformation(self.get_vertexes(p))
+            l_norm = self.get_coefficients(n)
 
-        for p in self.polygon:
-
-            # проективное преобразование и поворот модели
-            matrix_r = rotation_matrix()
-            x0, y0, z0 = np.dot(matrix_r, projective_transformation(self.vertex[p[0]]))
-            x1, y1, z1 = np.dot(matrix_r, projective_transformation(self.vertex[p[1]]))
-            x2, y2, z2 = np.dot(matrix_r, projective_transformation(self.vertex[p[2]]))
-
-            normal = [(y1 - y0) * (z1 - z2) - (y1 - y2) * (z1 - z0),
-                      (z1 - z0) * (x1 - x2) - (x1 - x0) * (z1 - z2),
-                      (x1 - x0) * (y1 - y2) - (x1 - x2) * (y1 - y0)]
-
-            # без try возникает ошибка "list index out of range"
-            try:
-                n_0 = self.normal[p[0]]
-                n_1 = self.normal[p[1]]
-                n_2 = self.normal[p[2]]
-            except:
-                continue
-
-            l0 = normalized_dot(n_0, vect_l)
-            l1 = normalized_dot(n_1, vect_l)
-            l2 = normalized_dot(n_2, vect_l)
-
-            x_min, y_min, x_max, y_max = search_minmax(x0, x1, x2, y0, y1, y2)
-
-            norm_dot = normalized_dot(normal, vect_l)
-
-            if norm_dot < 0:
-                for x in range(int(x_min), int(x_max) + 1):
-                    for y in range(int(y_min), int(y_max) + 1):
-
-                        lambdas = get_barycentric_coordinates(x, y, x0, y0, x1, y1, x2, y2)
-                        summ = np.sum(lambdas)
-                        if summ == 1:
-                            if np.all(lambdas >= 0):
-
-                                # z-buffer
-                                new_z = lambdas[0] * z0 + lambdas[1] * z1 + lambdas[2] * z2
-
-                                if picture.h > x >= 0 and picture.w > y >= 0:
-                                    if new_z > picture.z_buffer[x][y]:
-                                        picture.z_buffer[x][y] = new_z
-                                        picture.set_pixel(x, y, [255 * (lambdas[0] * l0 + lambdas[1] * l1 + lambdas[2] *
-                                                                        l2), 0, 0])
-
+            draw_with_z_buffer(new_vertexes, picture, l_norm)
         return picture
+
+    def get_coefficients(self, indexes):
+        vec = [0, 0, 1]
+        return [normalized_dot(self.normal[idx], vec) for idx in indexes]
+
+    def get_vertexes(self, indexes):
+        return [self.vertex[idx] for idx in indexes]
