@@ -1,4 +1,4 @@
-from PIL import Image
+
 from functions import *
 
 
@@ -120,14 +120,11 @@ class RenderPicture:
         return picture
 
     def draw_texture(self, height, weight, file_texture, color: bool = False):
-
-        texture_image = Image.open(file_texture, 'r')
-        text_width, text_height = texture_image.size
-        texture_image = np.asarray(texture_image)
+        texture_image, texture_size = texture_info(file_texture)
 
         picture = Picture(height, weight, color)
 
-        for p, n, t in zip(self.polygon, self.normal_to_polygon, self.texture):
+        for p, t in zip(self.polygon, self.texture):
             u0, v0 = self.vt[t[0]]
             u1, v1 = self.vt[t[1]]
             u2, v2 = self.vt[t[2]]
@@ -139,17 +136,20 @@ class RenderPicture:
             x0, y0, z0 = new_vertexes[0]
             x1, y1, z1 = new_vertexes[1]
             x2, y2, z2 = new_vertexes[2]
+
+            z = np.array([z0, z1, z2])
+
             x_min, y_min, x_max, y_max = search_minmax(x0, x1, x2, y0, y1, y2)
 
             for x, y in [(x, y) for x in range(int(x_min), int(x_max) + 1) for y in range(int(y_min), int(y_max) + 1)]:
-                barycentric = get_barycentric_coordinates(x, y, x0, y0, x1, y1, x2, y2)
-                if np.all(barycentric > 0):
-                    z = barycentric[0] * z0 + barycentric[1] * z1 + barycentric[2] * z2
-                    if 0 <= x < picture.w and 0 <= y < picture.h:
-                        if z > picture.z_buffer[x, y]:
-                            idx0, idx1 = np.sum(text_width * (barycentric * u)), np.sum(text_width * (barycentric * v))
-                            picture.z_buffer[x, y] = z
-                            picture.set_pixel(x, y, texture_image[int(np.round(idx0))][int(np.round(idx1))])
+                lambdas = get_barycentric_coordinates(x, y, x0, y0, x1, y1, x2, y2)
+                if np.all(lambdas > 0):
+                    new_z, new_u, new_v = find_new_coords(lambdas, z, v, u)
+                    if new_z > picture.z_buffer[x, y]:
+                        picture.z_buffer[x, y] = new_z
+                        id_0 = int(texture_size[0] * new_u)
+                        id_1 = int(texture_size[0] * new_v)
+                        picture.set_pixel(x, y, texture_image[id_0][id_1])
         return picture
 
     def draw_guro(self, height, weight, color: bool = False):

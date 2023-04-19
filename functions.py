@@ -1,4 +1,5 @@
 import numpy as np
+from PIL import Image
 
 
 def read_obj(filename):
@@ -142,3 +143,14 @@ def draw_with_z_buffer(vertex_list, picture, l_norm):
                                                     l_norm[2]),
                                              255 * (lambdas[0] * l_norm[0] + lambdas[1] * l_norm[1] + lambdas[2] *
                                                     l_norm[2])])
+
+
+def texture_info(file_path):
+    image = Image.open(file_path, 'r')
+    width, height = image.size
+    image = np.asarray(image)
+    return image, np.array((width, height))
+
+
+def find_new_coords(lambdas, z, u, v):
+    return np.sum(lambdas * z), np.sum(lambdas * u), np.sum(lambdas * v)

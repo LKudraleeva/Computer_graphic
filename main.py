@@ -63,10 +63,10 @@ def task_18():
     im.draw_guro(height, weight, True).save('result/task 18.jpg')
 
 
-def dop():
+def bonus_task():
     im = RenderPicture(file_name)
-    im.draw_texture(height, weight, 'img.png', True).save('result/dop.jpg')
+    im.draw_texture(height, weight, 'img_text.png', True).save('result/bonus_task.jpg')
 
 
 if __name__ == '__main__':
-    dop()
+    bonus_task()
