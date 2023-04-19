@@ -65,7 +65,7 @@ def task_18():
 
 def dop():
     im = RenderPicture(file_name)
-    im.draw_texture(height, weight, True).save('result/dop.jpg')
+    im.draw_texture(height, weight, 'img.png', True).save('result/dop.jpg')
 
 
 if __name__ == '__main__':
