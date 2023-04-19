@@ -5,7 +5,9 @@ def read_obj(filename):
     vertex = []
     polygon = []
     normal_to_polygon = []
+    texture = []
     normal = []
+    vt = []
     f = open(filename, 'r')
     lines = f.read()
     for line in lines.split('\n'):
@@ -17,11 +19,20 @@ def read_obj(filename):
             vertex.append([float(x), float(y), float(z)])
         if v == 'f':
             polygon.append([int(x.split("/")[0]) - 1, int(y.split("/")[0]) - 1, int(z.split("/")[0]) - 1])
+            texture.append([int(x.split('/')[1]) - 1, int(y.split('/')[1]) - 1, int(z.split('/')[1]) - 1])
             normal_to_polygon.append([int(x.split("/")[2]) - 1, int(y.split("/")[2]) - 1, int(z.split("/")[2]) - 1])
         if v == 'vn':
             normal.append([float(x), float(y), float(z)])
+
+    for line in lines.split('\n'):
+        try:
+            v, x, y = line.split(" ")
+        except:
+            continue
+        if v == 'vt':
+            vt.append([float(x), float(y)])
     f.close()
-    return vertex, polygon, normal, normal_to_polygon
+    return vertex, polygon, normal, normal_to_polygon, texture, vt
 
 
 def correct_points(x0: int, y0: int, x1: int, y1: int, steep=False):
@@ -126,4 +137,8 @@ def draw_with_z_buffer(vertex_list, picture, l_norm):
                 if new_z > picture.z_buffer[x][y]:
                     picture.z_buffer[x][y] = new_z
                     picture.set_pixel(x, y, [255 * (lambdas[0] * l_norm[0] + lambdas[1] * l_norm[1] + lambdas[2] *
-                                                    l_norm[2]), 0, 0])
+                                                    l_norm[2]),
+                                             255 * (lambdas[0] * l_norm[0] + lambdas[1] * l_norm[1] + lambdas[2] *
+                                                    l_norm[2]),
+                                             255 * (lambdas[0] * l_norm[0] + lambdas[1] * l_norm[1] + lambdas[2] *
+                                                    l_norm[2])])
