@@ -82,6 +82,7 @@ def projective_transformation(vertexes, rot=None):
 
     matrix = rotation_matrix(rot[0], rot[1], rot[2])
 
+    # числа -4000 отрицательные для поворота объекта (изначально объект стоит вверх ногами)
     matrix_k = np.array([[-4000, 0, 500],
                          [0, -4000, 500],
                          [0, 0, 1]])

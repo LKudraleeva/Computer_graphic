@@ -1,9 +1,7 @@
-
 from functions import *
 
 
 class Picture:
-
     def __init__(self, h: int = 256, w: int = 256, color: bool = False):
         self.h = h
         self.w = w
@@ -120,11 +118,24 @@ class RenderPicture:
         return picture
 
     def draw_texture(self, height, weight, file_texture, color: bool = False):
+        """
+        Метод наложения текстуры на объект
+        :param height: высота результирующей картинки
+        :param weight: ширина результирующей картинки
+        :param file_texture: путь к картинке с текстурой
+        :param color: булевое значение для определения цветности картинки
+        :return:  возвращает картинку с наложенной текстурой
+        """
+
+        # функция texture_info возвращает картинку - текстуру и размер этой картинки
         texture_image, texture_size = texture_info(file_texture)
 
+        # начальная инициализация кртинки
         picture = Picture(height, weight, color)
 
+        # проходимся в цикле по индексам полигонов и текстур
         for p, t in zip(self.polygon, self.texture):
+            # получаем координаты текстур по их индексам
             u0, v0 = self.vt[t[0]]
             u1, v1 = self.vt[t[1]]
             u2, v2 = self.vt[t[2]]
@@ -132,23 +143,37 @@ class RenderPicture:
             u = np.array([u0, u1, u2])
             v = np.array([v0, v1, v2])
 
+            # в функции projective_transformation переходим к проективным координатам
             new_vertexes = projective_transformation(self.get_vertexes(p))
+
+            # получаем координаты по каждой оси для трех точек полигона
             x0, y0, z0 = new_vertexes[0]
             x1, y1, z1 = new_vertexes[1]
             x2, y2, z2 = new_vertexes[2]
 
             z = np.array([z0, z1, z2])
 
+            # получаем границы полигона в функции search_minmax
             x_min, y_min, x_max, y_max = search_minmax(x0, x1, x2, y0, y1, y2)
 
+            # проходим по каждой координате полигона
             for x, y in [(x, y) for x in range(int(x_min), int(x_max) + 1) for y in range(int(y_min), int(y_max) + 1)]:
+                # находим барицентрические координаты
                 lambdas = get_barycentric_coordinates(x, y, x0, y0, x1, y1, x2, y2)
+                # если все координаты больше 0, то отрисовываем пиксель
                 if np.all(lambdas > 0):
+                    # находим новые координаты текстуры и z
                     new_z, new_u, new_v = find_new_coords(lambdas, z, v, u)
+
+                    # если новая координата z перекрывает старую, то есть находится ближе к нам от экрана, то рисуется
+                    # новый пиксель
                     if new_z > picture.z_buffer[x, y]:
+                        # передаем новое значение в z-буффер
                         picture.z_buffer[x, y] = new_z
+                        # масштабируем координаты текстуры
                         id_0 = int(texture_size[0] * new_u)
                         id_1 = int(texture_size[0] * new_v)
+                        # отрисовываем пиксель
                         picture.set_pixel(x, y, texture_image[id_0][id_1])
         return picture
 
